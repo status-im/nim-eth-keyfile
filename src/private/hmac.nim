@@ -1,4 +1,3 @@
-
 # Nim Eth-keyfile
 # Copyright (c) 2018 Status Research & Development GmbH
 # Licensed under either of
@@ -18,7 +17,7 @@ import nimsha2 # TODO: For SHA-256, use OpenSSL instead? (see https://rosettacod
 
 proc hmac_sha256*[N: static[int]](key: array[N, byte|char],
                                   data: string|seq[byte|char]): SHA256Digest =
-  # Note: due to https://github.com/nim-lang/Nim/issues/7208
+  # TODO: due to https://github.com/nim-lang/Nim/issues/7208
   # blockSize cannot be a compile-time parameter with a default value
   const
     opad: byte = 0x5c
@@ -37,10 +36,42 @@ proc hmac_sha256*[N: static[int]](key: array[N, byte|char],
     k_opad[i] = k[i] xor opad
 
   # computeSHA256 requires a string input output a SHA256Digest* = array[0..31, char]
-  # but using $digest creates a string with its ex representation meaning it's a pain to chain
+  # but using `$` might produce:
+  #   - A string of uint8 (wrong)
+  #   - A hex representation of the data (wrong)
+  #   - a "byte stream" stored in a string (correct)
   # The fact that arrays are now printable in Nim 0.18 doesn't help
-  # As a workaround we seqify arrays with @ and then convert to string with $
+  #
   # TODO Continuous integration
+
+  # inner pass
+  result = computeSHA256($cast[array[blockSize,char]](k_ipad) & data)
+  # outer pass
+  result = computeSHA256($cast[array[blockSize,char]](k_opad) & $result)
+
+
+proc hmac_sha256*(key: string|seq[byte|char],
+                  data: string|seq[byte|char]): SHA256Digest =
+  # TODO: due to https://github.com/nim-lang/Nim/issues/7208
+  # blockSize cannot be a compile-time parameter with a default value
+  const
+    opad: byte = 0x5c
+    ipad: byte = 0x36
+    blockSize = 64
+
+  var k, k_ipad{.noInit.}, k_opad{.noInit.}: array[blockSize, byte]
+
+  let N = key.len
+
+  # TODO: Crypto libs should use byte and not char or uint8 as the base type
+  if N > blockSize:
+    k[0 ..< 32] = cast[array[32, byte]](computeSHA256 cast[string](key))
+  else:
+    k[0 ..< N] = cast[seq[byte]](key)
+
+  for i in 0 ..< blockSize:
+    k_ipad[i] = k[i] xor ipad
+    k_opad[i] = k[i] xor opad
 
   # inner pass
   result = computeSHA256($cast[array[blockSize,char]](k_ipad) & data)
@@ -56,3 +87,4 @@ when isMainModule:
 
   import strutils
   doAssert hmac_sha256(key, data).toHex == "f7bc83f430538424b13298e6aa6fb143ef4d59a14946175997479dbc2d1a3cd8".toUpperAscii
+  doAssert hmac_sha256(@key, data).toHex == "f7bc83f430538424b13298e6aa6fb143ef4d59a14946175997479dbc2d1a3cd8".toUpperAscii
