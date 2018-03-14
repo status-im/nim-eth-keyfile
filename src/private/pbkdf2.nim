@@ -11,10 +11,14 @@
 # https://tools.ietf.org/html/rfc2898
 # https://en.wikipedia.org/wiki/PBKDF2
 
-import nimSHA2, math, strutils, endians
-import ./hmac
+import nimSHA2, math, strutils, endians, sequtils
+import ./hmac, ./functional
 
 type SHA2_Digest = SHA224Digest or SHA256Digest or SHA384Digest or SHA512Digest
+
+proc `xor`(a,b: char): char =
+  ## Using char or uint8 instead of byte for data blob is bad style
+  char a.byte xor b.byte
 
 proc pbkdf2_hmac*(
   HashName: typedesc[SHA2_Digest],
@@ -34,18 +38,24 @@ proc pbkdf2_hmac*(
 
   # Step 2
   let
-    n = dkLen div hLen # number of hLen-octet blocks in teh derived key (`l` in the official spec)
-    r = dkLen - (n - 1) * hLen # number of octets in the last block
+    n = dkLen div hLen # number of hLen-octet blocks in the derived key (`l` in the official spec)
 
   # Step 3
   when HashName is SHA256Digest:
-    proc F(password, salt: string, c: Positive, i: range[1.uint32..high(uint32)]): HashName =
+    assert hLen == 32
+
+    proc F(password, salt: string, c: Positive, i: range[1.uint32..high(uint32)]): HashName {.nimcall.}=
       var i_BE{.noInit.}: array[4, char] # i as a big-endian 32-bit integer
       bigEndian32(addr i_BE, unsafeAddr i)
 
-      result = hmac_sha256(password, salt & $i_BE)
-      for j in 1 ..< c:
-        result = hmac_sha256(password, $result)
+      # TODO using string as input is a mess for conversion
+      var U = hmac_sha256(password, salt & cast[string](@i_BE)) # workspace: will store the U_1 ... U_n
+
+      result = U # result are the T in the spec
+      for _ in 1 ..< c:
+        U = hmac_sha256(password, $U) # TODO accepts array without heap alloc
+                                      # TODO `$` string conversion is very fragile
+        result = zipMap(result, U, x xor y)
 
   # Step 4
   var fullDK = newSeq[HashName](n) # Full derived key
@@ -62,6 +72,7 @@ proc pbkdf2_hmac*(
 
 when isMainModule:
   # From https://github.com/openssl/openssl/blob/c537e74ba32e28d747d8e747abfa6cfff75c44c1/test/recipes/30-test_evp_data/evppbe.txt#L114-L119
+
   import strutils
 
   let
@@ -75,3 +86,5 @@ when isMainModule:
 
   # No toHex for seq[byte]: https://github.com/nim-lang/Nim/issues/4599
   doAssert toHex(cast[string](hash)) == "120fb6cffcf8b32c43e7225256c4f837a86548c92ccc35480805987cb70be17b".toUpperASCII
+
+  # other sources of tests: https://github.com/cryptocoinjs/pbkdf2-sha256/blob/master/test/fixtures/pbkdf2.json
