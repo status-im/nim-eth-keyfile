@@ -9,16 +9,7 @@ skipDirs      = @["tests", "Nim"]
 
 requires "nim > 0.18.0" , "nimcrypto >= 0.3.0", "eth_keys"
 
-proc test(name: string, lang: string = "cpp") =
-  if not dirExists "build":
-    mkDir "build"
-  if not dirExists "nimcache":
-    mkDir "nimcache"
-  --run
-  --nimcache: "nimcache"
-  switch("out", ("./build/" & name))
-  setCommand lang, "tests/" & name & ".nim"
+proc runTest(name: string, lang = "c") = exec "nim " & lang & " -r tests/" & name
 
 task test, "Run all tests":
-  test "testuuid"
-
+  runTest "testuuid"
