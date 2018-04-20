@@ -9,7 +9,7 @@
 
 ## This module implements interface to cross-platform UUID
 ## generator.
-## 
+##
 ## - ``Windows`` - using rpcrt4.dll's `UuidCreate()`.
 ## - ``Linux`` and ``Android`` - using `/proc/sys/kernel/random/uuid`.
 ## - ``MacOS`` and ``iOS`` - using `uuid_generate_random()`.
@@ -69,7 +69,7 @@ proc `$`*(u: UUID): string {.inline.} =
 when defined(nimdoc):
   proc uuidGenerate*(output: var UUID): int
     ## Generates new unique UUID and store it to `output`.
-    ## 
+    ##
     ## Return 1 on success, and 0 on failure
 
 when defined(posix):
@@ -96,7 +96,7 @@ when defined(posix):
         result = 0
 
   elif defined(linux) or defined(android):
-    import posix, os, sysrand
+    import posix, os, nimcrypto/sysrand
 
     proc uuidRead(bytes: var string, length: int): int =
       result = -1
@@ -127,7 +127,8 @@ when defined(posix):
         if randomBytes(output.data) == sizeof(output.data):
           result = 1
   else:
-    import sysrand
+    import nimcrypto/sysrand
+
     proc uuidGenerate*(output: var UUID): int =
       if randomBytes(output.data) == sizeof(output.data):
         result = 1
@@ -144,7 +145,8 @@ elif defined(windows):
     else:
       return 0
 elif not defined(nimdoc):
-  import sysrand
+  import nimcrypto/sysrand
+
   proc uuidGenerate*(output: var UUID): int =
     if randomBytes(output.data) == sizeof(output.data):
       result = 1
