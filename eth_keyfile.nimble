@@ -3,7 +3,7 @@ version       = "0.0.1"
 author        = "Status Research & Development GmbH"
 description   = "Tools for handling the encrypted keyfile format used to store Ethereum private keys"
 license       = "Apache License 2.0 or MIT"
-skipDirs      = @["tests", "Nim"]
+skipDirs      = @["tests", "Nim", "nim"]
 
 ### Dependencies
 
