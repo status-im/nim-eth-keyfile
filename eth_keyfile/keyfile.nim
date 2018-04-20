@@ -7,5 +7,5 @@
 #  Apache License, version 2.0, (LICENSE-APACHEv2)
 #              MIT license (LICENSE-MIT)
 
-import uuid, nimcrypto/[bcmode, rijndael, pbkdf2]
+import uuid, nimcrypto/[bcmode, rijndael, pbkdf2, sha2]
 
