@@ -132,6 +132,3 @@ suite "KeyFile test suite":
     check:
       loadKeyFile("nonexistant.keyfile", "password",
                   seckey) == KeyFileStatus.OsError
-  test "Save to protected pathname test":
-    check:
-      saveKeyFile("/root/bad.keyfile", jobject) == KeyFileStatus.OsError
