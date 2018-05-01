@@ -406,9 +406,7 @@ proc loadKeyFile*(pathname: string,
                   seckey: var PrivateKey): KeyFileStatus =
   ## Load and decode private key ``seckey`` from file with pathname
   ## ``pathname``, using password string ``password``.
-  var
-    f: File
-    data: JsonNode
+  var data: JsonNode
   var stream = newFileStream(pathname)
   if isNil(stream):
     return OsError
@@ -429,10 +427,8 @@ proc saveKeyFile*(pathname: string,
   ## Save JSON object ``jobject`` to file with pathname ``pathname``.
   var
     f: File
-    data: JsonNode
   if not f.open(pathname, fmWrite):
     return OsError
-
   try:
     f.write($jobject)
     result = Success
