@@ -118,7 +118,7 @@ when defined(posix):
 
     proc uuidGenerate*(output: var UUID): int =
       result = 0
-      var buffer = newStringOfCap(37)
+      var buffer = newString(37)
       if uuidRead(buffer, 36) == 36:
         buffer.setLen(36)
         output = uuidFromString(buffer)
