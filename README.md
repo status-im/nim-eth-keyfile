@@ -5,7 +5,8 @@
 [![Build Status](https://travis-ci.org/status-im/nim-eth-keyfile.svg?branch=master)](https://travis-ci.org/status-im/nim-eth-keyfile)
 [![Build status](https://ci.appveyor.com/api/projects/status/q932rbyxq24s7k9l/branch/master?svg=true)](https://ci.appveyor.com/project/cheatfate/nim-eth-keyfile/branch/master)
 
-A reimplementation in pure Nim of [eth-keyfile](https://github.com/ethereum/eth-keyfile), the tools for handling the encrypted keyfile format used to store private keys.
+This library is a Nim reimplementation of [ethereum/eth-keyfile](https://github.com/ethereum/eth-keyfile), which is used to create and load Ethereum `keyfile` format and the tools for handling the format and for storing private keys. Currently, the library supports only the PBKDF2 method and does not support the Scrypt method.
+
 
 ## License
 
