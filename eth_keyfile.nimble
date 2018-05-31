@@ -8,8 +8,8 @@ skipDirs      = @["tests", "Nim", "nim"]
 ### Dependencies
 
 requires "nim > 0.18.0",
-         "https://github.com/cheatfate/nimcrypto",
-         "https://github.com/status-im/nim-eth-keys"
+         "nimcrypto",
+         "eth_keys"
 
 task test, "Run all tests":
   exec "nim c -r tests/testuuid"
